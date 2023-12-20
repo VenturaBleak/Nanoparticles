@@ -77,6 +77,8 @@ from utils import (
     UnNormalize,
     get_mean_std
 )
+from feature_maps import visualize_feature_maps
+from grad_cam import visualize_gradcam_UNET
 from eval_metrics import (BinaryMetrics)
 
 def main(model_arch):
@@ -123,7 +125,7 @@ def main(model_arch):
     train_folder = 'data_train'
     train_ds = [
     # [dataset_name, fraction_of_positivies, fraction_of_negatives]
-        ['HorwarthDS', 1, 0],
+        ['HorwarthDS', 0.02, 0],
     ]
 
     image_dirs, mask_dirs, fractions = get_dirs_and_fractions(train_ds, parent_dir, train_folder)
@@ -139,7 +141,7 @@ def main(model_arch):
 
     val_ds = [
         # [dataset_name, fraction_of_positivies, fraction_of_negatives]
-        ['HorwarthDS', 1, 0],
+        ['HorwarthDS',  0.05, 0],
     ]
 
     # get all images in a given folder, that is: val_data
@@ -156,7 +158,7 @@ def main(model_arch):
 
     vis_ds = [
         # [dataset_name, fraction_of_positivies, fraction_of_negatives]
-        ['HorwarthDS', 1, 0],
+        ['HorwarthDS',  0.05, 0],
     ]
 
     # get all images in a given folder, that is: val_data
@@ -401,7 +403,7 @@ def main(model_arch):
 
     # retrieve model name for saving
     model_dir = "Experiment1"
-    model_name = model_arch + "_" + "NL"
+    model_name = model_arch + "_" + "HorwathDS"
 
     # create a GradScaler once at the beginning of training.
     scaler = torch.cuda.amp.GradScaler()
