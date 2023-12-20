@@ -117,19 +117,13 @@ def main(model_arch):
     cwd = os.getcwd()
 
     # Define the parent directory of the current working directory
-    parent_dir = os.path.dirname(cwd)
+    parent_dir = cwd
 
     # specify the training datasets
     train_folder = 'data_train'
     train_ds = [
     # [dataset_name, fraction_of_positivies, fraction_of_negatives]
-        ['France_google', 0, 0],
-        ['France_ign', 0, 0],
-        ['Munich', 0, 0],
-        ['China', 0, 0],
-        ['Denmark', 0, 0],
-        ['Heerlen_2018_HR_output', 1, 0],
-        ['ZL_2018_HR_output', 1, 0],
+        ['HorwarthDS', 1, 0],
     ]
 
     image_dirs, mask_dirs, fractions = get_dirs_and_fractions(train_ds, parent_dir, train_folder)
@@ -145,13 +139,7 @@ def main(model_arch):
 
     val_ds = [
         # [dataset_name, fraction_of_positivies, fraction_of_negatives]
-        ['France_google', 0, 0],
-        ['France_ign', 0., 0],
-        ['Munich', 0., 0],
-        ['China', 0., 0],
-        ['Denmark', 0., 0],
-        ['Heerlen_2018_HR_output', 1, 0],
-        ['ZL_2018_HR_output', 1, 0],
+        ['HorwarthDS', 1, 0],
     ]
 
     # get all images in a given folder, that is: val_data
@@ -168,13 +156,7 @@ def main(model_arch):
 
     vis_ds = [
         # [dataset_name, fraction_of_positivies, fraction_of_negatives]
-        ['France_google', 0, 0],
-        ['France_ign', 0., 0],
-        ['Munich', 0., 0],
-        ['China', 0., 0],
-        ['Denmark', 0., 0],
-        ['Heerlen_2018_HR_output', 1, 0],
-        ['ZL_2018_HR_output', 1, 0],
+        ['HorwarthDS', 1, 0],
     ]
 
     # get all images in a given folder, that is: val_data
@@ -189,6 +171,8 @@ def main(model_arch):
     ############################
     # Unit Tests for checking filepaths are correctly fetched
     ############################
+    print(f"train_images: {len(train_images)} | val_images: {len(val_images)} | vis_images: {len(vis_images)}")
+
     # Unit Test1: check whether images are unique, that is, no duplicates
     assert len(train_images) == len(set(train_images))
     assert len(train_masks) == len(set(train_masks))
