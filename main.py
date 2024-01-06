@@ -59,7 +59,7 @@ import matplotlib.pyplot as plt
 
 # repo files
 from models import (UNET,
-                   Segformer, create_segformer
+                   Segformer, create_segformer, SwinTransformerForSegmentation, ResNet
                    )
 from dataset import (SegmentationDataset, get_loaders,
                      fetch_filepaths, get_dirs_and_fractions
@@ -275,6 +275,15 @@ def main(model_arch):
     if model_arch == "UNet":
         # UNET
         model = UNET(in_channels=3, out_channels=1).to(DEVICE)
+    elif model_arch == "Swin":
+        # Swin
+        # Load pre-trained Swin Transformer V2 model
+        assert IMAGE_HEIGHT == IMAGE_WIDTH, "Image height and width must be equal!"
+        IMAGE_SIZE = IMAGE_HEIGHT
+        model = SwinTransformerForSegmentation(image_size=IMAGE_SIZE).to(DEVICE)
+    elif model_arch == "ResNet":
+        # ResNet
+        model = ResNet(num_classes=1).to(DEVICE)
     else:
         # also, experiment with bilinear interpolation on or off -> final upsampling layer of the model
         model = create_segformer(model_arch, channels=3, num_classes=1).to(DEVICE)
@@ -286,7 +295,7 @@ def main(model_arch):
     # Loss function
     ############################
     # BCE
-    # loss_fn = nn.BCEWithLogitsLoss()
+    loss_fn = nn.BCEWithLogitsLoss()
 
     # Dice
     # oss_fn = DiceLoss()
@@ -295,7 +304,7 @@ def main(model_arch):
     # loss_fn = IoULoss()
 
     # Tversky
-    loss_fn = TverskyLoss()
+    # loss_fn = TverskyLoss()
 
     # Careful: Loss functions below do not work with autocast in training loop!
     # Dice + BCE
@@ -498,6 +507,6 @@ def main(model_arch):
 
 if __name__ == "__main__":
     # loop over main for the following parameters
-    model_archs = ["UNet"]
+    model_archs = ["ResNet"]
     for model_arch in model_archs:
         main(model_arch)

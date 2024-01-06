@@ -347,5 +347,83 @@ def segformer_test():
 # Potential idea: implement Unet-Transformer Model
 # https://github.com/labmlai/annotated_deep_learning_paper_implementations/blob/05321d644e4fed67d8b2856adc2f8585e79dfbee/labml_nn/diffusion/stable_diffusion/model/unet.py
 
+#######################
+# Swin Transformer
+#######################
+import torch
+import torch.nn as nn
+from transformers import Swinv2Model, Swinv2Config
+
+class SwinTransformerForSegmentation(nn.Module):
+    def __init__(self, image_size=224):
+        super(SwinTransformerForSegmentation, self).__init__()
+        # self.swin_transformer = Swinv2Model(Swinv2Config(image_size=image_size)).from_pretrained('microsoft/swinv2-tiny-patch4-window8-256')
+        self.swin_transformer = Swinv2Model(Swinv2Config(image_size=image_size))
+
+        # Define upsampling layers
+        # The specific architecture here may need to be adjusted based on the output feature map size of Swin Transformer
+        self.upsample = nn.Sequential(
+            nn.ConvTranspose2d(768, 384, kernel_size=2, stride=2),
+            nn.BatchNorm2d(384),
+            nn.ReLU(inplace=True),
+            nn.ConvTranspose2d(384, 192, kernel_size=2, stride=2),
+            nn.BatchNorm2d(192),
+            nn.ReLU(inplace=True),
+            nn.ConvTranspose2d(192, 96, kernel_size=2, stride=2),
+            nn.BatchNorm2d(96),
+            nn.ReLU(inplace=True),
+            nn.ConvTranspose2d(96, 48, kernel_size=2, stride=2),
+            nn.BatchNorm2d(48),
+            nn.ReLU(inplace=True),
+            nn.ConvTranspose2d(48, 1, kernel_size=2, stride=2)  # Outputting a single channel for binary segmentation
+        )
+
+    def forward(self, pixel_values):
+        # Extract features using Swin Transformer
+        features = self.swin_transformer(pixel_values=pixel_values).last_hidden_state
+
+        # Reshape output to (batch_size, channels, height, width)
+        batch_size = features.shape[0]
+        features = features.view(batch_size, -1, int(features.shape[1] ** 0.5), int(features.shape[1] ** 0.5))
+
+        # Upsample to original resolution
+        segmentation_map = self.upsample(features)
+        return segmentation_map
+
+import torch
+import torch.nn as nn
+from torchvision.models.segmentation import fcn_resnet50, FCN_ResNet50_Weights
+
+class ResNet(nn.Module):
+    def __init__(self, num_classes=1):
+        super(ResNet, self).__init__()
+        # Load the pre-trained FCN model
+        weights = FCN_ResNet50_Weights.DEFAULT
+        self.fcn_model = fcn_resnet50(weights=weights)
+        # Modify the classifier to output the desired number of classes
+        self.fcn_model.classifier[4] = nn.Conv2d(self.fcn_model.classifier[4].in_channels, num_classes, kernel_size=(1, 1))
+
+    def forward(self, x):
+        return self.fcn_model(x)["out"]
+
 if __name__ == "__main__":
+    IMAGE_SIZE = 416
+    BATCH_SIZE = 3
+
+    model = ResNet(num_classes=1)
+    model.eval()
+    # Create a dummy input tensor
+    input_tensor = torch.randn(BATCH_SIZE, 3, IMAGE_SIZE, IMAGE_SIZE)
+    # Forward pass through the model
+    with torch.no_grad():
+        output = model(input_tensor)
+    print(f'Output shape: {output.shape}')
+
+    # test segformer
     segformer_test()
+
+    # test swin transformer
+    swin_transformer = SwinTransformerForSegmentation(image_size=IMAGE_SIZE)
+    output = swin_transformer(torch.randn(BATCH_SIZE, 3, IMAGE_SIZE, IMAGE_SIZE))
+    print("Output shape:", output.shape)
+

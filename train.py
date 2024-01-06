@@ -63,7 +63,7 @@ def train_fn(loader, model, optimizer, loss_fn, scaler, scheduler, device, epoch
         if epoch % 20 == 0 and batch_idx == 0:
             gradients_dict = {}  # Instantiate the dict here
             for name, param in model.named_parameters():
-                if param.requires_grad:
+                if param.requires_grad and param.grad is not None:
                     gradients_dict[name] = param.grad.clone().detach().cpu().numpy() # Store the gradients in the dict
             with open(os.path.join(model_path,f'{model_name}_Epoch{epoch}_gradients.pkl'), 'wb') as handle:  # Save dict to file
                 pickle.dump(gradients_dict, handle, protocol=pickle.HIGHEST_PROTOCOL)
